@@ -23,10 +23,10 @@ parse :: String -> Either ParseError Program
 parse s = case lex s of
            Left err -> Left err
            Right ts ->
-             case parseExpr ts of
+             case parseStmt ts of
               Left err -> Left err
               Right (t:_, _) -> Left (UnexpectedToken t)
-              Right ([], e) -> Right (Program [e])
+              Right ([], stmt) -> Right (Program [stmt])
 
 
 lex :: String -> Either ParseError [Token]
@@ -70,3 +70,11 @@ parseCall :: Expr -> [Token] -> Either ParseError ([Token], Expr)
 parseCall f ts = case parseArg ts of
                   Left err -> Right (ts, f)
                   Right (ts, e) -> parseCall (App f e) ts
+
+parseStmt :: [Token] -> Either ParseError ([Token], Stmt)
+parseStmt ts = case parseExpr ts of
+                Left err -> Left err
+                Right (Equals : ts, lhs) -> case parseExpr ts of
+                                             Left err -> Left err
+                                             Right (ts, rhs) -> Right (ts, Rule (lhs, rhs))
+                Right (ts, e) -> Right (ts, Expr e)

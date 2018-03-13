@@ -1,15 +1,18 @@
 module Core where
 
 
-data Program = Program [Expr]
+data Program = Program [Stmt]
              deriving (Show, Eq)
+
+data Stmt = Expr Expr
+          | Rule Rule
+          deriving (Show, Eq)
 
 data Expr = Var String
           | App Expr Expr
           | Num Integer
           deriving (Show, Eq)
 
-data Rule = Rule Expr Expr
-          deriving (Show, Eq)
+type Rule = (Expr, Expr)
 
 
