@@ -18,6 +18,7 @@ main = hspec $ do
                                                                    (Var "x"))
                                                               (Num 1))
                                                          (Var "y"))])
+      P.parse "f (g x)" `shouldBe` Right (Program [Expr (App (Var "f") (App (Var "g") (Var "x")))])
     it "parses equations" $ do
       P.parse "1 = 2" `shouldBe` Right (Program [Rule (Num 1, Num 2)])
       P.parse "1 = 2" `shouldBe` Right (Program [Rule (Num 1, Num 2)])
