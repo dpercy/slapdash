@@ -5,30 +5,36 @@ import Core
 import Data.Map (Map)
 import qualified Data.Map as Map
 
--- TODO create a "Rule" here that means (Expr -> Maybe Expr)
--- TODO rename applyRule to interpRule ?
 
--- evaluation uses a set of rules to reduce an expression to an expression (a value)
-eval :: [Equation] -> Expr -> Expr
-eval rules (App f x) = let f' = eval rules f in
-                        let x' = eval rules x in
-                         let e' = (App f' x') in
-                         case applyRules (eval rules) rules e' of
+type Rule = Expr -> Maybe Expr
+
+
+-- evaluation uses a single (!) reduction rule to reduce an expression to a value
+eval :: Rule -> Expr -> Expr
+eval step (App f x) = let f' = eval step f in
+                       let x' = eval step x in
+                        let e' = (App f' x') in
+                         case step e' of
                           Nothing -> e'
-                          Just e'' -> eval rules e''
-eval rules e = case applyRules (eval rules) rules e of
-                Nothing -> e
-                Just e' -> eval rules e'
+                          Just e'' -> eval step e''
+eval step e = case step e of
+               Nothing -> e
+               Just e' -> eval step e'
 
--- applyRules and applyRule take an "eval" parameter, used to reduce conditions in equations.
-applyRules :: (Expr -> Expr) -> [Equation] -> Expr -> Maybe Expr
-applyRules eval [] e = Nothing
-applyRules eval (r:rs) e = case applyRule eval r e of
-                            Just e' -> Just e'
-                            Nothing -> applyRules eval rs e
+makeRule :: [Equation] -> Rule
+makeRule eqs = step
+  where step = interpEquations (eval step) eqs
 
-applyRule :: (Expr -> Expr) -> Equation -> Expr -> Maybe Expr
-applyRule eval (pattern, template, condition) expr =
+
+-- TODO rephrase as foldr orderedChoice failRule
+interpEquations :: (Expr -> Expr) -> [Equation] -> Rule
+interpEquations eval [] e = Nothing
+interpEquations eval (r:rs) e = case interpEquation eval r e of
+                                 Just e' -> Just e'
+                                 Nothing -> interpEquations eval rs e
+
+interpEquation :: (Expr -> Expr) -> Equation -> Rule
+interpEquation eval (pattern, template, condition) expr =
   case tryMatch pattern expr of
    Nothing -> Nothing
    Just subst ->
