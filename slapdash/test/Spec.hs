@@ -62,8 +62,9 @@ main = hspec $ do
         `shouldBe` App (App (Var "mul") (Var "mul")) (Var "mul")
       R.eval rules (App (Var "square") (Var "square"))
         `shouldBe` App (App (Var "mul") (Var "square")) (Var "square")
-    it "does arithmetic" $ do
-      "" `shouldBe` "TODO create built-in rules..."
+    it "does conditional rules" $ do "" `shouldBe` "TODO test conditional rules..."
+    it "does arithmetic" $ do "" `shouldBe` "TODO create built-in rules..."
+    it "does string ops" $ do "" `shouldBe` "TODO create built-in rules..."
 
                           
     
