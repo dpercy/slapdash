@@ -9,6 +9,7 @@ data Token = Open
            | Close
            | Equals
            | Semicolon
+           | If
            | Integer String
            | Id String
            deriving (Show, Eq)
@@ -50,6 +51,7 @@ isIden '_' = True
 isIden c = isAlphaNum c
 
 lexIden prefix (c:cs) | isIden c = lexIden (prefix ++ [c]) cs
+lexIden "if" cs = fmap (If:) (lex cs)
 lexIden prefix cs = fmap (Id prefix:) (lex cs)
 
 
@@ -77,9 +79,14 @@ parseCall f ts = case parseArg ts of
 parseStmt :: [Token] -> Either ParseError ([Token], Stmt)
 parseStmt ts = case parseExpr ts of
                 Left err -> Left err
-                Right (Equals : ts, lhs) -> case parseExpr ts of
-                                             Left err -> Left err
-                                             Right (ts, rhs) -> Right (ts, Rule (lhs, rhs))
+                Right (Equals : ts, lhs) ->
+                  case parseExpr ts of
+                   Left err -> Left err
+                   Right (If:ts, rhs) ->
+                     case parseExpr ts of
+                      Left err -> Left err
+                      Right (ts, test) -> Right (ts, Rule (lhs, rhs, Just test))
+                   Right (ts, rhs) -> Right (ts, Rule (lhs, rhs, Nothing))
                 Right (ts, e) -> Right (ts, Expr e)
 
 parseStmts :: [Token] -> Either ParseError ([Token], [Stmt])
@@ -94,7 +101,5 @@ parseStmts ts = case parseStmt ts of
 
 
 
--- TODO parse semicolon / newline separated statements
--- TODO parse conditionals on the equations
 -- TODO unparse
 -- TODO rewrites

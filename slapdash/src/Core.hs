@@ -13,6 +13,7 @@ data Expr = Var String
           | Num Integer
           deriving (Show, Eq)
 
-type Rule = (Expr, Expr)
+-- lhs, rhs, condition
+type Rule = (Expr, Expr, Maybe Expr)
 
 
