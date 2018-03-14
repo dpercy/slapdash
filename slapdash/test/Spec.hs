@@ -62,7 +62,18 @@ main = hspec $ do
         `shouldBe` App (App (Var "mul") (Var "mul")) (Var "mul")
       R.eval rules (App (Var "square") (Var "square"))
         `shouldBe` App (App (Var "mul") (Var "square")) (Var "square")
-    it "does conditional rules" $ do "" `shouldBe` "TODO test conditional rules..."
+    it "does conditional rules" $ do
+      let rules = [ (App (Var "even") (Num 2), Var "true", Nothing)
+                  , (App (Var "even") (Num 4), Var "true", Nothing)
+                  , (App (Var "even") (Var "x"), Var "false", Nothing)
+                  , (App (Var "f") (Var "n"), Num 1, Just (App (Var "even")
+                                                           (Var "n")))
+                  , (App (Var "f") (Var "n"), Num 0, Nothing)
+                  ]
+      R.eval rules (App (Var "f") (Num 2)) `shouldBe` Num 1
+      R.eval rules (App (Var "f") (Num 4)) `shouldBe` Num 1
+      R.eval rules (App (Var "f") (Num 3)) `shouldBe` Num 0
+      R.eval rules (App (Var "f") (Var "derp")) `shouldBe` Num 0
     it "does arithmetic" $ do "" `shouldBe` "TODO create built-in rules..."
     it "does string ops" $ do "" `shouldBe` "TODO create built-in rules..."
 
