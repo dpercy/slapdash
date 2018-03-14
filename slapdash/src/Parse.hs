@@ -8,6 +8,7 @@ import Data.Char (isSpace, isDigit, isAlphaNum)
 data Token = Open
            | Close
            | Equals
+           | Semicolon
            | Integer String
            | Id String
            deriving (Show, Eq)
@@ -23,18 +24,20 @@ parse :: String -> Either ParseError Program
 parse s = case lex s of
            Left err -> Left err
            Right ts ->
-             case parseStmt ts of
+             case parseStmts ts of
               Left err -> Left err
               Right (t:_, _) -> Left (UnexpectedToken t)
-              Right ([], stmt) -> Right (Program [stmt])
+              Right ([], stmts) -> Right (Program stmts)
 
 
 lex :: String -> Either ParseError [Token]
 lex "" = Right []
+lex ('\n':cs) = fmap (Semicolon:) (lex cs)
 lex (c:cs) | isSpace c = lex cs
 lex ('(':cs) = fmap (Open:) (lex cs)
 lex (')':cs) = fmap (Close:) (lex cs)
 lex ('=':cs) = fmap (Equals:) (lex cs)
+lex (';':cs) = fmap (Semicolon:) (lex cs)
 lex (    c:cs) | isDigit c = lexInt "" (c:cs)
 lex ('-':c:cs) | isDigit c = lexInt "-" (c:cs)
 lex (    c:cs) | isIden c = lexIden "" (c:cs)
@@ -78,3 +81,20 @@ parseStmt ts = case parseExpr ts of
                                              Left err -> Left err
                                              Right (ts, rhs) -> Right (ts, Rule (lhs, rhs))
                 Right (ts, e) -> Right (ts, Expr e)
+
+parseStmts :: [Token] -> Either ParseError ([Token], [Stmt])
+parseStmts (Semicolon:ts) = parseStmts ts
+parseStmts ts = case parseStmt ts of
+                 -- TODO this swallows errors...
+                 --  instead, stop only when you peek certain tokens or EOF.
+                 Left err -> Right (ts, [])
+                 Right (ts, s0) -> case parseStmts ts of
+                                    Left err -> Left err
+                                    Right (ts, ss) -> Right (ts, s0:ss)
+
+
+
+-- TODO parse semicolon / newline separated statements
+-- TODO parse conditionals on the equations
+-- TODO unparse
+-- TODO rewrites

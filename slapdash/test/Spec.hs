@@ -10,6 +10,7 @@ main = hspec $ do
     it "lexes things" $ do
       P.lex ")=(fgs2 42 -0 " `shouldBe`
         Right [P.Close, P.Equals, P.Open, P.Id "fgs2", P.Integer "42", P.Integer "-0"]
+      P.lex "1;2" `shouldBe` Right [P.Integer "1", P.Semicolon, P.Integer "2"]
   describe "parse" $ do
     it "parses expressions" $ do
       P.parse "1" `shouldBe` Right (Program [Expr (Num 1)])
@@ -22,4 +23,9 @@ main = hspec $ do
     it "parses equations" $ do
       P.parse "1 = 2" `shouldBe` Right (Program [Rule (Num 1, Num 2)])
       P.parse "1 = 2" `shouldBe` Right (Program [Rule (Num 1, Num 2)])
-        
+    it "parses multiple statements" $ do
+      P.parse "1;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+      P.parse "1;;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+      P.parse "1\n2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+      P.parse "1\n\n2\n" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+
