@@ -3,6 +3,7 @@ import Test.Hspec
 
 import Core
 import qualified Parse as P
+import qualified Rewrite as R
 
 main :: IO ()
 main = hspec $ do
@@ -37,4 +38,32 @@ main = hspec $ do
         `shouldBe` "f x y\n"
       P.unparse (Program [Expr (App (App (Var "f") (App (Var "g") (Var "x"))) (Var "y"))])
         `shouldBe` "f (g x) y\n"
+  describe "eval" $ do
+    it "does global variables" $ do
+      let rules = [ (Var "x", Var "y", Nothing)
+                  , (Var "y", Var "z", Nothing)
+                  ]
+      R.eval rules (Var "y") `shouldBe` Var "z"
+      R.eval rules (Var "x") `shouldBe` Var "z"
+      R.eval rules (Var "a") `shouldBe` Var "a"
+      R.eval rules (Num 23) `shouldBe` Num 23
+    it "does simple calls" $ do
+      let rules = [ (App (Var "square") (Var "n"),
+                     App (App (Var "mul") (Var "n")) (Var "n"),
+                     Nothing)
+                  , (App (Var "inc") (Var "x"),
+                     App (App (Var "sub") (Var "n")) (Num 1),
+                     Nothing)
+                  ]
+      R.eval rules (Var "square") `shouldBe` Var "square"
+      R.eval rules (App (Var "square") (Var "v"))
+        `shouldBe` App (App (Var "mul") (Var "v")) (Var "v")
+      R.eval rules (App (Var "square") (Var "mul"))
+        `shouldBe` App (App (Var "mul") (Var "mul")) (Var "mul")
+      R.eval rules (App (Var "square") (Var "square"))
+        `shouldBe` App (App (Var "mul") (Var "square")) (Var "square")
+    it "does arithmetic" $ do
+      "" `shouldBe` "TODO create built-in rules..."
 
+                          
+    
