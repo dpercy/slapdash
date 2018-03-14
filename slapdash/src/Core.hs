@@ -5,7 +5,7 @@ data Program = Program [Stmt]
              deriving (Show, Eq)
 
 data Stmt = Expr Expr
-          | Rule Rule
+          | Eqn Equation
           deriving (Show, Eq)
 
 data Expr = Var String
@@ -16,6 +16,6 @@ data Expr = Var String
           deriving (Show, Eq)
 
 -- lhs, rhs, condition
-type Rule = (Expr, Expr, Maybe Expr)
+type Equation = (Expr, Expr, Maybe Expr)
 
 

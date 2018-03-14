@@ -23,8 +23,8 @@ main = hspec $ do
                                                          (Var "y"))])
       P.parse "f (g x)" `shouldBe` Right (Program [Expr (App (Var "f") (App (Var "g") (Var "x")))])
     it "parses equations" $ do
-      P.parse "1 = 2" `shouldBe` Right (Program [Rule (Num 1, Num 2, Nothing)])
-      P.parse "1 = 2 if 3" `shouldBe` Right (Program [Rule (Num 1, Num 2, Just (Num 3))])
+      P.parse "1 = 2" `shouldBe` Right (Program [Eqn (Num 1, Num 2, Nothing)])
+      P.parse "1 = 2 if 3" `shouldBe` Right (Program [Eqn (Num 1, Num 2, Just (Num 3))])
     it "parses multiple statements" $ do
       P.parse "1;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
       P.parse "1;;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
@@ -32,7 +32,7 @@ main = hspec $ do
       P.parse "1\n\n2\n" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
   describe "unparse" $ do
     it "unparses" $ do
-      P.unparse (Program [Rule (Num 1, Num 2, Just (Num 3))])
+      P.unparse (Program [Eqn (Num 1, Num 2, Just (Num 3))])
         `shouldBe` "1 = 2 if 3\n"
       P.unparse (Program [Expr (App (App (Var "f") (Var "x")) (Var "y"))])
         `shouldBe` "f x y\n"

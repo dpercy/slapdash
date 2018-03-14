@@ -85,8 +85,8 @@ parseStmt ts = case parseExpr ts of
                    Right (If:ts, rhs) ->
                      case parseExpr ts of
                       Left err -> Left err
-                      Right (ts, test) -> Right (ts, Rule (lhs, rhs, Just test))
-                   Right (ts, rhs) -> Right (ts, Rule (lhs, rhs, Nothing))
+                      Right (ts, test) -> Right (ts, Eqn (lhs, rhs, Just test))
+                   Right (ts, rhs) -> Right (ts, Eqn (lhs, rhs, Nothing))
                 Right (ts, e) -> Right (ts, Expr e)
 
 parseStmts :: [Token] -> Either ParseError ([Token], [Stmt])
@@ -104,9 +104,9 @@ unparse :: Program -> String
 unparse (Program stmts) = unlines (map unparseStmt stmts)
 
 unparseStmt (Expr e) = unparseExpr e
-unparseStmt (Rule (lhs, rhs, Nothing)) = unparseExpr lhs ++ " = " ++ unparseExpr rhs
-unparseStmt (Rule (lhs, rhs, Just t)) = (unparseExpr lhs ++ " = " ++ unparseExpr rhs
-                                         ++ " if " ++ unparseExpr t)
+unparseStmt (Eqn (lhs, rhs, Nothing)) = unparseExpr lhs ++ " = " ++ unparseExpr rhs
+unparseStmt (Eqn (lhs, rhs, Just t)) = (unparseExpr lhs ++ " = " ++ unparseExpr rhs
+                                        ++ " if " ++ unparseExpr t)
 
 unparseExpr (App f x) = unparseExpr f ++ " " ++ unparseArg x
 unparseExpr e = unparseArg e

@@ -5,12 +5,11 @@ import Core
 import Data.Map (Map)
 import qualified Data.Map as Map
 
--- TODO rename Core.Rule to Equation
 -- TODO create a "Rule" here that means (Expr -> Maybe Expr)
 -- TODO rename applyRule to interpRule ?
 
 -- evaluation uses a set of rules to reduce an expression to an expression (a value)
-eval :: [Rule] -> Expr -> Expr
+eval :: [Equation] -> Expr -> Expr
 eval rules (App f x) = let f' = eval rules f in
                         let x' = eval rules x in
                          let e' = (App f' x') in
@@ -22,13 +21,13 @@ eval rules e = case applyRules (eval rules) rules e of
                 Just e' -> eval rules e'
 
 -- applyRules and applyRule take an "eval" parameter, used to reduce conditions in equations.
-applyRules :: (Expr -> Expr) -> [Rule] -> Expr -> Maybe Expr
+applyRules :: (Expr -> Expr) -> [Equation] -> Expr -> Maybe Expr
 applyRules eval [] e = Nothing
 applyRules eval (r:rs) e = case applyRule eval r e of
                             Just e' -> Just e'
                             Nothing -> applyRules eval rs e
 
-applyRule :: (Expr -> Expr) -> Rule -> Expr -> Maybe Expr
+applyRule :: (Expr -> Expr) -> Equation -> Expr -> Maybe Expr
 applyRule eval (pattern, template, condition) expr =
   case tryMatch pattern expr of
    Nothing -> Nothing
