@@ -29,4 +29,12 @@ main = hspec $ do
       P.parse "1;;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
       P.parse "1\n2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
       P.parse "1\n\n2\n" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+  describe "unparse" $ do
+    it "unparses" $ do
+      P.unparse (Program [Rule (Num 1, Num 2, Just (Num 3))])
+        `shouldBe` "1 = 2 if 3\n"
+      P.unparse (Program [Expr (App (App (Var "f") (Var "x")) (Var "y"))])
+        `shouldBe` "f x y\n"
+      P.unparse (Program [Expr (App (App (Var "f") (App (Var "g") (Var "x"))) (Var "y"))])
+        `shouldBe` "f (g x) y\n"
 

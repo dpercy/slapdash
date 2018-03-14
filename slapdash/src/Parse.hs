@@ -100,6 +100,20 @@ parseStmts ts = case parseStmt ts of
                                     Right (ts, ss) -> Right (ts, s0:ss)
 
 
+unparse :: Program -> String
+unparse (Program stmts) = unlines (map unparseStmt stmts)
 
--- TODO unparse
+unparseStmt (Expr e) = unparseExpr e
+unparseStmt (Rule (lhs, rhs, Nothing)) = unparseExpr lhs ++ " = " ++ unparseExpr rhs
+unparseStmt (Rule (lhs, rhs, Just t)) = (unparseExpr lhs ++ " = " ++ unparseExpr rhs
+                                         ++ " if " ++ unparseExpr t)
+
+unparseExpr (App f x) = unparseExpr f ++ " " ++ unparseArg x
+unparseExpr e = unparseArg e
+
+unparseArg (Var s) = s
+unparseArg (Num n) = show n
+unparseArg e@(App _ _) = "(" ++ unparseExpr e ++ ")"
+
+
 -- TODO rewrites
