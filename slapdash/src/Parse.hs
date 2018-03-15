@@ -11,6 +11,7 @@ data Token = Open
            | Semicolon
            | If
            | Integer String
+           | String String
            | Id String
            deriving (Show, Eq)
 
@@ -42,6 +43,7 @@ lex (';':cs) = fmap (Semicolon:) (lex cs)
 lex (    c:cs) | isDigit c = lexInt "" (c:cs)
 lex ('-':c:cs) | isDigit c = lexInt "-" (c:cs)
 lex (    c:cs) | isIden c = lexIden "" (c:cs)
+lex ('"':cs) = lexStr "\"" cs
 lex (c:_) = Left (UnexpectedChar c)
 
 lexInt prefix (c:cs) | isDigit c = lexInt (prefix ++ [c]) cs
@@ -54,10 +56,16 @@ lexIden prefix (c:cs) | isIden c = lexIden (prefix ++ [c]) cs
 lexIden "if" cs = fmap (If:) (lex cs)
 lexIden prefix cs = fmap (Id prefix:) (lex cs)
 
+lexStr prefix [] = Left UnexpectedEOF
+lexStr prefix ('"':cs) = fmap (String (read (prefix ++ "\"")):) (lex cs)
+lexStr prefix ('\\':c:cs) = lexStr (prefix ++ ['\\', c]) cs
+lexStr prefix (c:cs) = lexStr (prefix ++ [c]) cs
+
 
 parseArg :: [Token] -> Either ParseError ([Token], Expr)
 parseArg [] = Left UnexpectedEOF
 parseArg (Integer s : ts) = Right (ts, Num (read s))
+parseArg (String s : ts) = Right (ts, Str s)
 parseArg (Id s : ts) = Right (ts, Var s)
 parseArg (Open : ts) = case parseExpr ts of
                         Left err -> Left err
@@ -114,6 +122,3 @@ unparseExpr e = unparseArg e
 unparseArg (Var s) = s
 unparseArg (Num n) = show n
 unparseArg e@(App _ _) = "(" ++ unparseExpr e ++ ")"
-
-
--- TODO rewrites

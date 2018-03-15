@@ -4,6 +4,7 @@ import Test.Hspec
 import Core
 import qualified Parse as P
 import qualified Rewrite as R
+import qualified Prim
 
 main :: IO ()
 main = hspec $ do
@@ -30,6 +31,11 @@ main = hspec $ do
       P.parse "1;;2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
       P.parse "1\n2" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
       P.parse "1\n\n2\n" `shouldBe` Right (Program [Expr (Num 1), Expr (Num 2)])
+    it "parses strings" $ do
+      P.parse "  \"hi\" " `shouldBe` Right (Program [Expr (Str "hi")])
+      P.parse ("\"" ++ "\\\\" ++ "\"") `shouldBe` Right (Program [Expr (Str "\\")])
+      P.parse ("\"" ++ "\\t" ++ "\"") `shouldBe` Right (Program [Expr (Str "\t")])
+      
   describe "unparse" $ do
     it "unparses" $ do
       P.unparse (Program [Eqn (Num 1, Num 2, Just (Num 3))])
@@ -77,8 +83,16 @@ main = hspec $ do
       R.eval rule (App (Var "f") (Num 4)) `shouldBe` Num 1
       R.eval rule (App (Var "f") (Num 3)) `shouldBe` Num 0
       R.eval rule (App (Var "f") (Var "derp")) `shouldBe` Num 0
-    it "does arithmetic" $ do "" `shouldBe` "TODO create built-in rules..."
-    it "does string ops" $ do "" `shouldBe` "TODO create built-in rules..."
-
-                          
-    
+    it "does arithmetic" $ do
+      let rule = R.alts [ Prim.rAdd
+                        , Prim.rMul
+                        ]
+      R.eval rule (App (App (Var "add") (Num 1)) (Num 2)) `shouldBe` Num 3
+      R.eval rule (App (App (Var "mul") (Num 3)) (Num 2)) `shouldBe` Num 6
+      R.eval rule (App (App (Var "mul") (Var "foo")) (Var "foo"))
+        `shouldBe` App (App (Var "mul") (Var "foo")) (Var "foo")
+    it "does string ops" $ do
+      let rule = R.alts [ Prim.rStringAdd ]
+      R.eval rule (App (App (Var "add") (Str "x")) (Str "y"))
+        `shouldBe` Str "xy"
+                        

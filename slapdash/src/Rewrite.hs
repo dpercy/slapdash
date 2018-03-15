@@ -23,13 +23,20 @@ eval step e = case step (eval step) e of
                Nothing -> e
                Just e' -> eval step e'
 
+-- alt is ordered choice
+alt :: Rule -> Rule -> Rule
+alt r1 r2 eval e = case r1 eval e of
+                    Nothing -> r2 eval e
+                    Just e' -> Just e'
 
--- TODO rephrase as foldr orderedChoice failRule
+failRule :: Rule
+failRule eval e = Nothing
+
+alts :: [Rule] -> Rule
+alts = foldr alt failRule
+
 interpEquations :: [Equation] -> Rule
-interpEquations [] eval e = Nothing
-interpEquations (r:rs) eval e = case interpEquation r eval e of
-                                 Just e' -> Just e'
-                                 Nothing -> interpEquations rs eval e
+interpEquations eqs = alts (map interpEquation eqs)
 
 interpEquation :: Equation -> Rule
 interpEquation (pattern, template, condition) eval expr =
@@ -58,7 +65,8 @@ tryMatch (Num _) _ = Nothing
 -- matching an arg-pattern, so treat Var as a hole
 tryMatchArg :: Expr -> Expr -> Maybe (Map String Expr)
 tryMatchArg (Var x) e = Just (Map.singleton x e)
-tryMatchArg p e = tryMatch p e
+tryMatchArg p@(App _ _) e = tryMatch p e
+tryMatchArg p@(Num _) e = tryMatch p e
 
 combineSubsts :: (Map String Expr) -> (Map String Expr) -> (Map String Expr)
 -- TODO catch key collisions earlier: when you interpRule
