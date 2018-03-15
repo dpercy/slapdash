@@ -6,7 +6,9 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 
-type Rule = Expr -> Maybe Expr
+-- A Rule is a thing that possibly-rewrites an Expr,
+-- but also it needs access to an eval function to check the side conditions (if any).
+type Rule = (Expr -> Expr) -> Expr -> Maybe Expr
 
 
 -- evaluation uses a single (!) reduction rule to reduce an expression to a value
@@ -14,27 +16,23 @@ eval :: Rule -> Expr -> Expr
 eval step (App f x) = let f' = eval step f in
                        let x' = eval step x in
                         let e' = (App f' x') in
-                         case step e' of
+                         case step (eval step) e' of
                           Nothing -> e'
                           Just e'' -> eval step e''
-eval step e = case step e of
+eval step e = case step (eval step) e of
                Nothing -> e
                Just e' -> eval step e'
 
-makeRule :: [Equation] -> Rule
-makeRule eqs = step
-  where step = interpEquations (eval step) eqs
-
 
 -- TODO rephrase as foldr orderedChoice failRule
-interpEquations :: (Expr -> Expr) -> [Equation] -> Rule
-interpEquations eval [] e = Nothing
-interpEquations eval (r:rs) e = case interpEquation eval r e of
+interpEquations :: [Equation] -> Rule
+interpEquations [] eval e = Nothing
+interpEquations (r:rs) eval e = case interpEquation r eval e of
                                  Just e' -> Just e'
-                                 Nothing -> interpEquations eval rs e
+                                 Nothing -> interpEquations rs eval e
 
-interpEquation :: (Expr -> Expr) -> Equation -> Rule
-interpEquation eval (pattern, template, condition) expr =
+interpEquation :: Equation -> Rule
+interpEquation (pattern, template, condition) eval expr =
   case tryMatch pattern expr of
    Nothing -> Nothing
    Just subst ->

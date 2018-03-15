@@ -40,21 +40,23 @@ main = hspec $ do
         `shouldBe` "f (g x) y\n"
   describe "eval" $ do
     it "does global variables" $ do
-      let rule = R.makeRule [ (Var "x", Var "y", Nothing)
-                            , (Var "y", Var "z", Nothing)
-                            ]
+      let rule = R.interpEquations [
+            (Var "x", Var "y", Nothing)
+            , (Var "y", Var "z", Nothing)
+            ]
       R.eval rule (Var "y") `shouldBe` Var "z"
       R.eval rule (Var "x") `shouldBe` Var "z"
       R.eval rule (Var "a") `shouldBe` Var "a"
       R.eval rule (Num 23) `shouldBe` Num 23
     it "does simple calls" $ do
-      let rule = R.makeRule [ (App (Var "square") (Var "n"),
-                               App (App (Var "mul") (Var "n")) (Var "n"),
-                               Nothing)
-                            , (App (Var "inc") (Var "x"),
-                               App (App (Var "sub") (Var "n")) (Num 1),
-                               Nothing)
-                            ]
+      let rule = R.interpEquations [
+            (App (Var "square") (Var "n"),
+             App (App (Var "mul") (Var "n")) (Var "n"),
+             Nothing)
+            , (App (Var "inc") (Var "x"),
+               App (App (Var "sub") (Var "n")) (Num 1),
+               Nothing)
+            ]
       R.eval rule (Var "square") `shouldBe` Var "square"
       R.eval rule (App (Var "square") (Var "v"))
         `shouldBe` App (App (Var "mul") (Var "v")) (Var "v")
@@ -63,13 +65,14 @@ main = hspec $ do
       R.eval rule (App (Var "square") (Var "square"))
         `shouldBe` App (App (Var "mul") (Var "square")) (Var "square")
     it "does conditional rules" $ do
-      let rule = R.makeRule [ (App (Var "even") (Num 2), Var "true", Nothing)
-                            , (App (Var "even") (Num 4), Var "true", Nothing)
-                            , (App (Var "even") (Var "x"), Var "false", Nothing)
-                            , (App (Var "f") (Var "n"), Num 1,
-                               Just (App (Var "even") (Var "n")))
-                            , (App (Var "f") (Var "n"), Num 0, Nothing)
-                  ]
+      let rule = R.interpEquations [
+            (App (Var "even") (Num 2), Var "true", Nothing)
+            , (App (Var "even") (Num 4), Var "true", Nothing)
+            , (App (Var "even") (Var "x"), Var "false", Nothing)
+            , (App (Var "f") (Var "n"), Num 1,
+               Just (App (Var "even") (Var "n")))
+            , (App (Var "f") (Var "n"), Num 0, Nothing)
+            ]
       R.eval rule (App (Var "f") (Num 2)) `shouldBe` Num 1
       R.eval rule (App (Var "f") (Num 4)) `shouldBe` Num 1
       R.eval rule (App (Var "f") (Num 3)) `shouldBe` Num 0
