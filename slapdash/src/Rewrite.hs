@@ -11,6 +11,19 @@ import qualified Data.Map as Map
 type Rule = (Expr -> Expr) -> Expr -> Maybe Expr
 
 
+-- Use the equations to simplify all the expressions.
+-- Accepts an additional "primitives" rule.
+evalProgram :: Rule -> Program -> Program
+evalProgram primRule (Program stmts) =
+  let eqs = [ eq | Eqn eq <- stmts ] in
+   let rule = alt primRule (interpEquations eqs) in
+    Program $ flip map stmts $ \stmt ->
+    case stmt of
+     eq@(Eqn _) -> eq
+     Expr e -> Expr (eval rule e)
+      
+
+
 -- evaluation uses a single (!) reduction rule to reduce an expression to a value
 eval :: Rule -> Expr -> Expr
 eval step (App f x) = let f' = eval step f in

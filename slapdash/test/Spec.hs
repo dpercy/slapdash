@@ -84,15 +84,13 @@ main = hspec $ do
       R.eval rule (App (Var "f") (Num 3)) `shouldBe` Num 0
       R.eval rule (App (Var "f") (Var "derp")) `shouldBe` Num 0
     it "does arithmetic" $ do
-      let rule = R.alts [ Prim.rAdd
-                        , Prim.rMul
-                        ]
+      let rule = Prim.primRules
       R.eval rule (App (App (Var "add") (Num 1)) (Num 2)) `shouldBe` Num 3
       R.eval rule (App (App (Var "mul") (Num 3)) (Num 2)) `shouldBe` Num 6
       R.eval rule (App (App (Var "mul") (Var "foo")) (Var "foo"))
         `shouldBe` App (App (Var "mul") (Var "foo")) (Var "foo")
     it "does string ops" $ do
-      let rule = R.alts [ Prim.rStringAdd ]
+      let rule = Prim.primRules
       R.eval rule (App (App (Var "add") (Str "x")) (Str "y"))
         `shouldBe` Str "xy"
                         
