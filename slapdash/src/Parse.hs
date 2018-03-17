@@ -121,4 +121,5 @@ unparseExpr e = unparseArg e
 
 unparseArg (Var s) = s
 unparseArg (Num n) = show n
+unparseArg (Str s) = show s
 unparseArg e@(App _ _) = "(" ++ unparseExpr e ++ ")"

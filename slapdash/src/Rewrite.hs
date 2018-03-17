@@ -74,12 +74,15 @@ tryMatch (App pf px) (App ef ex) =
 tryMatch (App _ _) _ = Nothing
 tryMatch (Num x) (Num y) | x == y = Just Map.empty
 tryMatch (Num _) _ = Nothing
+tryMatch (Str x) (Str y) | x == y = Just Map.empty
+tryMatch (Str _) _ = Nothing
 
 -- matching an arg-pattern, so treat Var as a hole
 tryMatchArg :: Expr -> Expr -> Maybe (Map String Expr)
 tryMatchArg (Var x) e = Just (Map.singleton x e)
 tryMatchArg p@(App _ _) e = tryMatch p e
 tryMatchArg p@(Num _) e = tryMatch p e
+tryMatchArg p@(Str _) e = tryMatch p e
 
 combineSubsts :: (Map String Expr) -> (Map String Expr) -> (Map String Expr)
 -- TODO catch key collisions earlier: when you interpRule
@@ -99,3 +102,4 @@ applySubst s (Var x) = case Map.lookup x s of
                         Just e -> e
 applySubst s (App f x) = App (applySubst s f) (applySubst s x)
 applySubst s e@(Num _) = e
+applySubst s e@(Str _) = e
