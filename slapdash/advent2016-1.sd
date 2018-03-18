@@ -9,8 +9,56 @@ split input delim = addFirst (take 1 input) (split (drop 1 input) delim) if isSt
 addFirst prefix (cons hd tl) = cons (add prefix hd) tl
 addFirst "x" (cons "y" potato)
 
-234
 
-instructions = split input ", "
+instructions = map parseInstruction (split input ", ")
 
-x = "hi"
+parseInstruction s = Inst (take 1 s) (parseInt (drop 1 s))
+map f xs = empty if equal xs empty
+map f (cons x xs) = cons (f x) (map f xs)
+
+
+"TODO implement comments"
+
+turn "R" "up" = "right"
+turn "R" "right" = "down"
+turn "R" "down" = "left"
+turn "R" "left" = "up"
+turn "L" facing = turn "R" (turn "R" (turn "R" facing))
+
+turn "L" "down"
+
+translate (Pos x y) (Pos xx yy) = Pos (add x xx) (add y yy)
+
+initialState = (State "up" (Pos 0 0))
+
+step (State heading pos) (Inst angle mag) = move mag (State (turn angle heading) pos)
+
+
+fromPolar "up"    mag = Pos 0 (sub 0 mag)
+fromPolar "down"  mag = Pos 0 (add 0 mag)
+fromPolar "left"  mag = Pos (sub 0 mag) 0
+fromPolar "right" mag = Pos (add 0 mag) 0
+
+move amount (State heading pos) = (State heading (translate (fromPolar heading amount) pos))
+
+step initialState (Inst "R" 5)
+
+steps st insts = st if equal insts empty
+steps st (cons i insts) = steps (step st i) insts
+
+measure (State h (Pos x y)) = add (abs x) (abs y)
+
+abs x = x if gte x 0
+abs x = (sub 0 x) if lt x 0
+
+measure (steps initialState instructions)
+
+"TODO why doesn't this work?? should be 126"
+stepsSeen seen (State h pos) insts = Dammit seen (State h pos) if contains seen pos
+stepsSeen seen (State h pos) (cons i insts) = stepsSeen (cons pos seen) (step (State h pos) i) insts
+
+contains xs elem = false if equal xs empty
+contains (cons x xs) elem = true if equal x elem
+contains (cons x xs) elem = contains xs elem
+
+stepsSeen empty initialState instructions

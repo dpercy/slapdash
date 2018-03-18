@@ -69,6 +69,8 @@ primRules = alts [
   binop @Int @String "drop" drop,
 
   unop "isString" isString,
+  unop "parseInt" (read @Integer),
+  unop "showInt" (show @Integer),
   
   binop @Expr "equal" (==)
   ]
