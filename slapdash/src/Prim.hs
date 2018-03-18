@@ -69,11 +69,16 @@ primRules = alts [
   binop @Int @String "drop" drop,
 
   unop "isString" isString,
-  unop "parseInt" (read @Integer),
+  unop "parseInt" parseInt,
   unop "showInt" (show @Integer),
   
   binop @Expr "equal" (==)
   ]
+
+parseInt :: String -> Expr
+parseInt s = case readsPrec 0 s of
+  [(i, "")] -> Num i
+  _ -> (App (Var "NotAnInt") (Str s))
 
 isString (Str _) = True
 isString _ = False

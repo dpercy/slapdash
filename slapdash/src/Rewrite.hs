@@ -94,7 +94,8 @@ evalCondition eval subst Nothing = True
 evalCondition eval subst (Just e) = case eval (applySubst subst e) of
                                      Var "true" -> True
                                      Var "false" -> False
-                                     _ -> error "TODO handle non-boolean conditions"
+                                     e' -> error ("TODO handle non-boolean conditions: "
+                                                  ++ show e')
 
 applySubst :: (Map String Expr) -> Expr -> Expr
 applySubst s (Var x) = case Map.lookup x s of

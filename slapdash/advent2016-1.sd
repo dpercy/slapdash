@@ -61,4 +61,5 @@ contains xs elem = false if equal xs empty
 contains (cons x xs) elem = true if equal x elem
 contains (cons x xs) elem = contains xs elem
 
+stepsSeen empty initialState (map parseInstruction (split "R1,L1,L1,L1,R100" ","))
 stepsSeen empty initialState instructions
